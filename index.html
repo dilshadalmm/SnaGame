@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>TutorUps - Video Lectures</title>
+<title>TutorUps - Learning Platform</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <style>
@@ -80,25 +80,27 @@
       color: #666;
     }
 
-    /* Auth Buttons Container */
-    .auth-container {
-      display: flex;
-      gap: 15px;
-      margin-left: auto;
-      align-items: center;
-    }
-
-    .student-name {
+    /* Join Class Button */
+    .join-class-btn {
+      background: var(--danger);
       color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 30px;
       font-weight: 600;
-      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
       display: flex;
       align-items: center;
       gap: 8px;
+      box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+      margin-left: auto;
     }
 
-    .student-name i {
-      font-size: 1.2rem;
+    .join-class-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+      background: #d62839;
     }
 
     /* Brand Logo */
@@ -160,8 +162,7 @@
       border-radius: 30px;
       border: none;
       font-weight: 500;
-      background: #edf2ff;
-      color: var(--primary);
+      color: white;
       white-space: nowrap;
       cursor: pointer;
       transition: var(--transition);
@@ -169,6 +170,7 @@
       align-items: center;
       font-size: 0.9rem;
       min-width: max-content;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     .category i {
@@ -177,87 +179,59 @@
     }
 
     .category:hover {
-      background: #dbe4ff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
 
-    .category.active {
-      background: var(--primary);
-      color: white;
-      box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+    /* Category specific colors */
+    .lectures-btn { background: var(--primary); }
+    .notes-btn { background: var(--success); }
+    .practice-btn { background: var(--warning); color: var(--dark); }
+    .routine-btn { background: var(--accent); }
+
+    /* Dropdown containers */
+    .dropdown-container {
+      display: none;
+      background: white;
+      border-radius: 10px;
+      margin-top: 10px;
+      padding: 15px;
+      box-shadow: var(--card-shadow);
     }
 
-    /* Course Container */
-    .main-container {
-      padding: 20px;
+    .dropdown-container.active {
+      display: block;
     }
 
-    .course-container {
+    /* Chapter list */
+    .chapter-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 25px;
-      margin-top: 20px;
+      gap: 15px;
+      margin-top: 15px;
     }
 
-    /* Video Card */
-    .course-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: var(--card-shadow);
-      position: relative;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .course-card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    }
-
-    .course-header {
-      background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .chapter-item {
+      background: #f8f9fa;
+      border-radius: 8px;
       padding: 15px;
-      color: white;
+      cursor: pointer;
+      transition: var(--transition);
     }
 
-    .course-logo {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--primary);
-      font-weight: 700;
-      font-size: 1.2rem;
+    .chapter-item:hover {
+      background: #e9ecef;
     }
 
-    .course-platform {
-      font-weight: 600;
-      font-size: 1rem;
-    }
-
-    .badge-new {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: var(--warning);
-      color: var(--dark);
-      font-size: 0.8rem;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 600;
-      z-index: 2;
-    }
-
+    /* Video container */
     .video-container {
       position: relative;
       padding-bottom: 56.25%; /* 16:9 aspect ratio */
       height: 0;
       overflow: hidden;
+      margin-top: 15px;
+      border-radius: 8px;
+      background: #000;
     }
 
     .video-container iframe {
@@ -269,70 +243,23 @@
       border: none;
     }
 
-    .video-content {
-      padding: 15px;
+    /* PDF container */
+    .pdf-container {
+      height: 500px;
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-top: 15px;
     }
 
-    .video-description-box {
-      height: 40px; /* Fixed height for 2 lines */
-      overflow: hidden;
-      margin-bottom: 15px;
-      color: #555;
-      font-size: 0.85rem;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
-    .video-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 15px 15px;
-    }
-
-    .notes-btn {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      font-weight: 600;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(76, 201, 240, 0.3);
-    }
-
-    .notes-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(76, 201, 240, 0.4);
-    }
-
-    .module-btn {
-      background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      font-weight: 600;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(67, 97, 238, 0.3);
-    }
-
-    .module-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
-    }
-
-    .notes-btn i, .module-btn i {
-      margin-right: 6px;
-      font-size: 0.9rem;
+    /* Routine image container */
+    .routine-image {
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      border-radius: 8px;
+      margin-top: 15px;
+      border: 1px solid #ddd;
     }
 
     /* Responsive Design */
@@ -340,17 +267,15 @@
       .header {
         padding: 15px;
       }
-
       .brand {
         font-size: 1.5rem;
       }
-
       .search-container {
         display: none;
       }
-
-      .course-container {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      .join-class-btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
       }
     }
 
@@ -358,43 +283,17 @@
       .header {
         padding: 10px 15px;
       }
-
       .brand {
         font-size: 1.4rem;
       }
-      
-      .video-footer {
-        flex-direction: column;
-        gap: 10px;
+      .join-class-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
       }
-      
-      .notes-btn, .module-btn {
-        width: 100%;
-        justify-content: center;
+      .category-buttons {
+        flex-wrap: wrap;
       }
     }
-
-    /* Animation for cards */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .course-card {
-      animation: fadeInUp 0.5s ease-out;
-      animation-fill-mode: both;
-    }
-
-    .course-card:nth-child(1) { animation-delay: 0.1s; }
-    .course-card:nth-child(2) { animation-delay: 0.2s; }
-    .course-card:nth-child(3) { animation-delay: 0.3s; }
-    .course-card:nth-child(4) { animation-delay: 0.4s; }
 </style>
 </head>
 <body>
@@ -402,181 +301,174 @@
 <div class="brand">TutorUps</div>
 <div class="search-container">
 <i class="fas fa-search search-icon"></i>
-<input class="search-box" placeholder="Search video lectures..." type="text"/>
+<input class="search-box" placeholder="Search materials..." type="text"/>
 </div>
-<div class="auth-container">
-<div class="student-name">
-<i class="fas fa-user-graduate"></i> John Doe
-</div>
-</div>
+<button class="join-class-btn">
+<i class="fas fa-video"></i> JOIN CLASS
+</button>
 </header>
+
 <section class="category-section">
-<h2 class="section-title"><i class="fas fa-layer-group"></i> ChapTer ConTents</h2>
+<h2 class="section-title"><i class="fas fa-layer-group"></i> Learning Materials</h2>
 <div class="category-buttons">
-<button class="category active" data-category="chapter1">CHAPTER 1</button>
-<button class="category" data-category="chapter2">CHAPTER 2</button>
-<button class="category" data-category="chapter3">CHAPTER 3</button>
-<button class="category" data-category="chapter4">CHAPTER 4</button>
-<button class="category" data-category="chapter5">CHAPTER 5</button>
-<button class="category" data-category="chapter6">CHAPTER 6</button>
-<button class="category" data-category="chapter7">CHAPTER 7</button>
-<button class="category" data-category="chapter8">CHAPTER 8</button>
-<button class="category" data-category="chapter9">CHAPTER 9</button>
-<button class="category" data-category="chapter10">CHAPTER 10</button>
+<button class="category lectures-btn" id="lecturesBtn">
+<i class="fas fa-play-circle"></i> LECTURES
+</button>
+<button class="category notes-btn" id="notesBtn">
+<i class="fas fa-file-alt"></i> NOTES
+</button>
+<button class="category practice-btn" id="practiceBtn">
+<i class="fas fa-edit"></i> PRACTICE SHEET
+</button>
+<button class="category routine-btn" id="routineBtn">
+<i class="fas fa-calendar-alt"></i> ROUTINE
+</button>
+</div>
+
+<!-- Lectures Dropdown -->
+<div class="dropdown-container" id="lecturesDropdown">
+<h3 style="margin-bottom: 15px; color: var(--primary);">Select Chapter:</h3>
+<div class="chapter-list">
+<div class="chapter-item" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+Chapter 1: Introduction to Subject
+</div>
+<div class="chapter-item" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+Chapter 2: Advanced Concepts
+</div>
+<div class="chapter-item" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+Chapter 3: Practical Applications
+</div>
+</div>
+
+<div class="video-container" id="lectureVideoContainer">
+<!-- Video will be loaded here -->
+</div>
+</div>
+
+<!-- Notes Dropdown -->
+<div class="dropdown-container" id="notesDropdown">
+<h3 style="margin-bottom: 15px; color: var(--success);">Select Notes:</h3>
+<div class="chapter-list">
+<div class="chapter-item" data-pdf="chapter1_notes.pdf">
+Chapter 1 Notes
+</div>
+<div class="chapter-item" data-pdf="chapter2_notes.pdf">
+Chapter 2 Notes
+</div>
+<div class="chapter-item" data-pdf="chapter3_notes.pdf">
+Chapter 3 Notes
+</div>
+</div>
+
+<div class="pdf-container" id="notesPdfContainer">
+<embed id="notesPdfViewer" src="" type="application/pdf" width="100%" height="100%">
+</div>
+</div>
+
+<!-- Practice Sheet Dropdown -->
+<div class="dropdown-container" id="practiceDropdown">
+<h3 style="margin-bottom: 15px; color: var(--warning);">Select Practice Sheet:</h3>
+<div class="chapter-list">
+<div class="chapter-item" data-pdf="chapter1_practice.pdf">
+Chapter 1 Practice
+</div>
+<div class="chapter-item" data-pdf="chapter2_practice.pdf">
+Chapter 2 Practice
+</div>
+<div class="chapter-item" data-pdf="chapter3_practice.pdf">
+Chapter 3 Practice
+</div>
+</div>
+
+<div class="pdf-container" id="practicePdfContainer">
+<embed id="practicePdfViewer" src="" type="application/pdf" width="100%" height="100%">
+</div>
+</div>
+
+<!-- Routine Dropdown -->
+<div class="dropdown-container" id="routineDropdown">
+<h3 style="margin-bottom: 15px; color: var(--accent);">Study Routine:</h3>
+<img src="https://via.placeholder.com/800x600/4cc9f0/ffffff?text=Study+Routine" class="routine-image" alt="Study Routine">
 </div>
 </section>
-<main class="main-container">
-<h2 class="section-title"><i class="fas fa-fire"></i> FeaTured LecTures</h2>
-<div class="course-container">
-<!-- Chapter 1 Videos -->
-<div class="course-card" data-category="chapter1">
-<div class="badge-new">NEW</div>
-<div class="course-header">
-<div class="course-logo">TU</div>
-<h3 class="course-platform">TutorUps</h3>
-</div>
-<div class="video-container">
-<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&controls=0" frameborder="0" allowfullscreen></iframe>
-</div>
-<div class="video-content">
-<div class="video-description-box">
-This video covers the basic concepts of Chapter 1 including fundamental principles and examples.
-</div>
-</div>
-<div class="video-footer">
-<button class="notes-btn"><i class="fas fa-file-alt"></i> NOTES</button>
-<button class="module-btn"><i class="fas fa-play-circle"></i> MODULE</button>
-</div>
-</div>
-
-<div class="course-card" data-category="chapter1">
-<div class="course-header">
-<div class="course-logo">TU</div>
-<h3 class="course-platform">TutorUps</h3>
-</div>
-<div class="video-container">
-<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&controls=0" frameborder="0" allowfullscreen></iframe>
-</div>
-<div class="video-content">
-<div class="video-description-box">
-Dive deeper into Chapter 1 with advanced concepts and problem solving techniques.
-</div>
-</div>
-<div class="video-footer">
-<button class="notes-btn"><i class="fas fa-file-alt"></i> NOTES</button>
-<button class="module-btn"><i class="fas fa-play-circle"></i> MODULE</button>
-</div>
-</div>
-
-<div class="course-card" data-category="chapter1">
-<div class="badge-new">HOT</div>
-<div class="course-header">
-<div class="course-logo">TU</div>
-<h3 class="course-platform">TutorUps</h3>
-</div>
-<div class="video-container">
-<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&controls=0" frameborder="0" allowfullscreen></iframe>
-</div>
-<div class="video-content">
-<div class="video-description-box">
-Learn how to apply Chapter 1 concepts in real-world scenarios with practical examples.
-</div>
-</div>
-<div class="video-footer">
-<button class="notes-btn"><i class="fas fa-file-alt"></i> NOTES</button>
-<button class="module-btn"><i class="fas fa-play-circle"></i> MODULE</button>
-</div>
-</div>
-
-<div class="course-card" data-category="chapter1">
-<div class="course-header">
-<div class="course-logo">TU</div>
-<h3 class="course-platform">TutorUps</h3>
-</div>
-<div class="video-container">
-<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&controls=0" frameborder="0" allowfullscreen></iframe>
-</div>
-<div class="video-content">
-<div class="video-description-box">
-Step-by-step guide to solving common problems from Chapter 1 with expert tips.
-</div>
-</div>
-<div class="video-footer">
-<button class="notes-btn"><i class="fas fa-file-alt"></i> NOTES</button>
-<button class="module-btn"><i class="fas fa-play-circle"></i> MODULE</button>
-</div>
-</div>
-
-<div class="course-card" data-category="chapter1">
-<div class="course-header">
-<div class="course-logo">TU</div>
-<h3 class="course-platform">TutorUps</h3>
-</div>
-<div class="video-container">
-<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&controls=0" frameborder="0" allowfullscreen></iframe>
-</div>
-<div class="video-content">
-<div class="video-description-box">
-Comprehensive summary of all key points covered in Chapter 1 for quick revision.
-</div>
-</div>
-<div class="video-footer">
-<button class="notes-btn"><i class="fas fa-file-alt"></i> NOTES</button>
-<button class="module-btn"><i class="fas fa-play-circle"></i> MODULE</button>
-</div>
-</div>
-
-<!-- Chapter 2 Videos (hidden by default) -->
-<div class="course-card" data-category="chapter2" style="display:none;">
-<div class="badge-new">NEW</div>
-<div class="course-header">
-<div class="course-logo">TU</div>
-<h3 class="course-platform">TutorUps</h3>
-</div>
-<div class="video-container">
-<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&controls=0" frameborder="0" allowfullscreen></iframe>
-</div>
-<div class="video-content">
-<div class="video-description-box">
-Begin your journey with Chapter 2 by understanding its core concepts and fundamentals.
-</div>
-</div>
-<div class="video-footer">
-<button class="notes-btn"><i class="fas fa-file-alt"></i> NOTES</button>
-<button class="module-btn"><i class="fas fa-play-circle"></i> MODULE</button>
-</div>
-</div>
-</div>
-</main>
 
 <script>
-  // Get all category buttons and course cards
-  const categoryButtons = document.querySelectorAll('.category');
-  const courseCards = document.querySelectorAll('.course-card');
+  // DOM Elements
+  const lecturesBtn = document.getElementById('lecturesBtn');
+  const notesBtn = document.getElementById('notesBtn');
+  const practiceBtn = document.getElementById('practiceBtn');
+  const routineBtn = document.getElementById('routineBtn');
+  
+  const lecturesDropdown = document.getElementById('lecturesDropdown');
+  const notesDropdown = document.getElementById('notesDropdown');
+  const practiceDropdown = document.getElementById('practiceDropdown');
+  const routineDropdown = document.getElementById('routineDropdown');
+  
+  const lectureVideoContainer = document.getElementById('lectureVideoContainer');
+  const notesPdfViewer = document.getElementById('notesPdfViewer');
+  const practicePdfViewer = document.getElementById('practicePdfViewer');
 
-  // Add click event listeners to category buttons
-  categoryButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      // Get the category from the button's data attribute
-      const category = button.dataset.category;
+  // Toggle dropdowns
+  lecturesBtn.addEventListener('click', () => {
+    toggleDropdown(lecturesDropdown);
+  });
+
+  notesBtn.addEventListener('click', () => {
+    toggleDropdown(notesDropdown);
+  });
+
+  practiceBtn.addEventListener('click', () => {
+    toggleDropdown(practiceDropdown);
+  });
+
+  routineBtn.addEventListener('click', () => {
+    toggleDropdown(routineDropdown);
+  });
+
+  function toggleDropdown(dropdown) {
+    // Hide all dropdowns first
+    [lecturesDropdown, notesDropdown, practiceDropdown, routineDropdown].forEach(d => {
+      if (d !== dropdown) d.classList.remove('active');
+    });
+    
+    // Toggle the clicked dropdown
+    dropdown.classList.toggle('active');
+  }
+
+  // Load video when chapter is selected
+  document.querySelectorAll('.chapter-item[data-video]').forEach(item => {
+    item.addEventListener('click', function() {
+      const videoUrl = this.getAttribute('data-video') + '?rel=0&modestbranding=1';
+      lectureVideoContainer.innerHTML = `
+        <iframe src="${videoUrl}" frameborder="0" allowfullscreen></iframe>
+      `;
       
-      // Update active state of buttons
-      categoryButtons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
-      
-      // Show/hide courses based on category
-      courseCards.forEach(card => {
-        if (card.dataset.category === category) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
-        }
-      });
+      // Scroll to video
+      lectureVideoContainer.scrollIntoView({ behavior: 'smooth' });
     });
   });
 
-  // Initialize with Chapter 1 visible
-  document.querySelector('.category[data-category="chapter1"]').click();
+  // Load PDF when notes/practice is selected
+  document.querySelectorAll('.chapter-item[data-pdf]').forEach(item => {
+    item.addEventListener('click', function() {
+      const pdfUrl = this.getAttribute('data-pdf');
+      
+      // Determine which PDF viewer to update
+      if (this.closest('#notesDropdown')) {
+        notesPdfViewer.src = pdfUrl;
+      } else {
+        practicePdfViewer.src = pdfUrl;
+      }
+      
+      // Scroll to PDF viewer
+      document.getElementById(this.closest('#notesDropdown') ? 'notesPdfContainer' : 'practicePdfContainer')
+        .scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // Initialize with first PDF and Video loaded
+  document.querySelector('.chapter-item[data-video]')?.click();
+  document.querySelector('.chapter-item[data-pdf]')?.click();
 </script>
 </body>
 </html>
