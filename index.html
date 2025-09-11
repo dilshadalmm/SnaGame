@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LearnHub - Educational Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+        }
+        
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+        
+        .content-area {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .subjects-container {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .video-container {
+            flex: 2;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4e54c8;
+            color: #4e54c8;
+        }
+        
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .subject-card {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .subject-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .subject-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        
+        .chapters-list {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .chapter-item {
+            background: #f1f3f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        
+        .chapter-item:hover {
+            background: #e4e8f5;
+        }
+        
+        .videos-list {
+            margin-top: 20px;
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .video-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: background 0.3s;
+        }
+        
+        .video-item:hover {
+            background: #f1f3f9;
+        }
+        
+        .video-item i {
+            color: #4e54c8;
+            font-size: 1.2rem;
+        }
+        
+        .custom-video-player {
+            width: 100%;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        #main-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+        
+        .video-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding: 12px;
+            background: #f1f3f9;
+            border-radius: 8px;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            background: #4e54c8;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: #3a3fb8;
+        }
+        
+        .speed-control {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .landscape-btn {
+            padding: 8px 15px;
+            background: #4e54c8;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .video-title {
+            font-size: 1.3rem;
+            margin: 15px 0;
+            color: #333;
+        }
+        
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Disable text selection and context menu */
+        body {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 900px) {
+            .content-area {
+                flex-direction: column;
+            }
+            
+            .subjects-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .subjects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .video-controls {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .control-group {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        /* Fullscreen landscape mode */
+        .landscape-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .landscape-mode .video-wrapper {
+            padding-top: 0;
+            height: 100%;
+            border-radius: 0;
+        }
+        
+        .landscape-mode .video-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            border-radius: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+        }
+        
+        .exit-landscape {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>LearnHub</h1>
+            </div>
+            <p class="subtitle">Expand your knowledge with our curated courses</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="content-area">
+            <div class="subjects-container">
+                <h2 class="section-title">Subjects</h2>
+                <div class="subjects-grid">
+                    <div class="subject-card" onclick="openChapters('math')">
+                        <i class="fas fa-calculator"></i>
+                        <h3>Mathematics</h3>
+                        <p>10 Chapters</p>
+                    </div>
+                    
+                    <div class="subject-card" onclick="openChapters('science')">
+                        <i class="fas fa-flask"></i>
+                        <h3>Science</h3>
+                        <p>8 Chapters</p>
+                    </div>
+                    
+                    <div class="subject-card" onclick="openChapters('history')">
+                        <i class="fas fa-monument"></i>
+                        <h3>History</h3>
+                        <p>6 Chapters</p>
+                    </div>
+                    
+                    <div class="subject-card" onclick="openChapters('english')">
+                        <i class="fas fa-book"></i>
+                        <h3>English</h3>
+                        <p>9 Chapters</p>
+                    </div>
+                </div>
+                
+                <div class="chapters-list">
+                    <button class="back-btn" onclick="backToSubjects()">
+                        <i class="fas fa-arrow-left"></i> Back to Subjects
+                    </button>
+                    <h3 class="chapter-title">Chapters</h3>
+                    <div class="chapters-container"></div>
+                </div>
+                
+                <div class="videos-list">
+                    <button class="back-btn" onclick="backToChapters()">
+                        <i class="fas fa-arrow-left"></i> Back to Chapters
+                    </button>
+                    <h3 class="videos-title">Video Lectures</h3>
+                    <div class="videos-container"></div>
+                </div>
+            </div>
+            
+            <div class="video-container">
+                <h2 class="section-title">Video Lecture</h2>
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Select a video to start learning</p>
+                </div>
+                
+                <div class="custom-video-player">
+                    <div class="video-wrapper">
+                        <video id="main-video" controls disablePictureInPicture controlsList="nodownload noremoteplayback">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    
+                    <h3 class="video-title">Video Title Will Appear Here</h3>
+                    
+                    <div class="video-controls">
+                        <div class="control-group">
+                            <button class="control-btn" onclick="skipBackward()">
+                                <i class="fas fa-backward-step"></i>
+                            </button>
+                            <button class="control-btn" onclick="togglePlayPause()">
+                                <i class="fas fa-play" id="play-pause-icon"></i>
+                            </button>
+                            <button class="control-btn" onclick="skipForward()">
+                                <i class="fas fa-forward-step"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="control-group">
+                            <div class="speed-control" onclick="changeSpeed()">
+                                <span id="speed-text">1x</span>
+                            </div>
+                            <button class="landscape-btn" onclick="toggleLandscape()">
+                                <i class="fas fa-expand"></i> Landscape
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="exit-landscape" onclick="toggleLandscape()">
+        <i class="fas fa-compress"></i>
+    </button>
+    
+    <script>
+        // Firebase configuration and initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyBX8U5_4Cwbp0ASZQ9b1whEhN4vZvoT6lg",
+            authDomain: "tutorup-7cbe6.firebaseapp.com",
+            projectId: "tutorup-7cbe6",
+            storageBucket: "tutorup-7cbe6.firebasestorage.app",
+            messagingSenderId: "653016552",
+            appId: "1:653016552:web:054a36461844bb1cd0385d"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // DOM elements
+        const subjectsGrid = document.querySelector('.subjects-grid');
+        const chaptersList = document.querySelector('.chapters-list');
+        const videosList = document.querySelector('.videos-list');
+        const customVideoPlayer = document.querySelector('.custom-video-player');
+        const loadingElement = document.querySelector('.loading');
+        const mainVideo = document.getElementById('main-video');
+        const videoTitle = document.querySelector('.video-title');
+        const playPauseIcon = document.getElementById('play-pause-icon');
+        const speedText = document.getElementById('speed-text');
+        const exitLandscapeBtn = document.querySelector('.exit-landscape');
+        
+        // State variables
+        let currentSubject = null;
+        let currentChapter = null;
+        let currentVideo = null;
+        let isLandscapeMode = false;
+        const speeds = [0.5, 1, 1.5, 2];
+        let currentSpeedIndex = 1;
+        
+        // Disable right-click context menu
+        document.addEventListener('contextmenu', function(e) {
+            if (e.target.nodeName === 'VIDEO') {
+                e.preventDefault();
+            }
+        });
+        
+        // Disable video download and copy
+        mainVideo.addEventListener('loadstart', function() {
+            // This makes it harder to download the video
+            mainVideo.controls = false;
+            mainVideo.controls = true;
+        });
+        
+        // Prevent video pause when clicking outside (with exception for controls)
+        mainVideo.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Function to open chapters of a subject
+        function openChapters(subjectId) {
+            currentSubject = subjectId;
+            subjectsGrid.style.display = 'none';
+            chaptersList.style.display = 'block';
+            
+            // Update UI
+            document.querySelector('.chapter-title').textContent = `${subjectId.charAt(0).toUpperCase() + subjectId.slice(1)} Chapters`;
+            
+            // In a real app, you would fetch this from Firebase
+            const chaptersContainer = document.querySelector('.chapters-container');
+            chaptersContainer.innerHTML = '';
+            
+            // Sample data - in real app, this would come from Firebase
+            const chapters = {
+                'math': ['Algebra Basics', 'Geometry', 'Calculus', 'Statistics'],
+                'science': ['Biology', 'Chemistry', 'Physics', 'Earth Science'],
+                'history': ['Ancient History', 'Medieval Period', 'Modern History', 'World Wars'],
+                'english': ['Grammar', 'Literature', 'Writing Skills', 'Poetry']
+            };
+            
+            chapters[subjectId].forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = 'chapter-item';
+                chapterItem.innerHTML = `
+                    <span>${chapter}</span>
+                    <i class="fas fa-chevron-right"></i>
+                `;
+                chapterItem.addEventListener('click', () => openVideos(subjectId, `chapter-${index+1}`, chapter));
+                chaptersContainer.appendChild(chapterItem);
+            });
+        }
+        
+        // Function to open videos of a chapter
+        function openVideos(subjectId, chapterId, chapterName) {
+            currentChapter = chapterId;
+            chaptersList.style.display = 'none';
+            videosList.style.display = 'block';
+            
+            // Update UI
+            document.querySelector('.videos-title').textContent = `${chapterName} Videos`;
+            
+            // In a real app, you would fetch this from Firebase
+            const videosContainer = document.querySelector('.videos-container');
+            videosContainer.innerHTML = '';
+            
+            // Sample data - in real app, this would come from Firebase
+            const videos = [
+                { id: 'video1', title: 'Introduction to ' + chapterName, duration: '10:15' },
+                { id: 'video2', title: 'Advanced Concepts', duration: '15:30' },
+                { id: 'video3', title: 'Practical Examples', duration: '12:45' },
+                { id: 'video4', title: 'Review and Exercises', duration: '18:20' }
+            ];
+            
+            videos.forEach(video => {
+                const videoItem = document.createElement('div');
+                videoItem.className = 'video-item';
+                videoItem.innerHTML = `
+                    <i class="fas fa-play-circle"></i>
+                    <div>
+                        <h4>${video.title}</h4>
+                        <p>Duration: ${video.duration}</p>
+                    </div>
+                `;
+                videoItem.addEventListener('click', () => playVideo(video));
+                videosContainer.appendChild(videoItem);
+            });
+        }
+        
+        // Function to play a video
+        function playVideo(video) {
+            currentVideo = video;
+            loadingElement.style.display = 'none';
+            customVideoPlayer.style.display = 'block';
+            
+            // In a real app, you would get the URL from Firebase
+            // For demo purposes, we're using a sample video
+            mainVideo.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+            videoTitle.textContent = video.title;
+            
+            mainVideo.load();
+            mainVideo.play();
+            playPauseIcon.className = 'fas fa-pause';
+            
+            // Scroll to video player on mobile
+            if (window.innerWidth < 900) {
+                document.querySelector('.video-container').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // Function to toggle play/pause
+        function togglePlayPause() {
+            if (mainVideo.paused) {
+                mainVideo.play();
+                playPauseIcon.className = 'fas fa-pause';
+            } else {
+                mainVideo.pause();
+                playPauseIcon.className = 'fas fa-play';
+            }
+        }
+        
+        // Function to skip forward 10 seconds
+        function skipForward() {
+            mainVideo.currentTime += 10;
+        }
+        
+        // Function to skip backward 10 seconds
+        function skipBackward() {
+            mainVideo.currentTime -= 10;
+        }
+        
+        // Function to change playback speed
+        function changeSpeed() {
+            currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+            const newSpeed = speeds[currentSpeedIndex];
+            mainVideo.playbackRate = newSpeed;
+            speedText.textContent = newSpeed + 'x';
+        }
+        
+        // Function to toggle landscape mode
+        function toggleLandscape() {
+            isLandscapeMode = !isLandscapeMode;
+            
+            if (isLandscapeMode) {
+                document.documentElement.requestFullscreen().catch(console.log);
+                document.body.classList.add('landscape-mode');
+                exitLandscapeBtn.style.display = 'flex';
+            } else {
+                document.exitFullscreen().catch(console.log);
+                document.body.classList.remove('landscape-mode');
+                exitLandscapeBtn.style.display = 'none';
+            }
+        }
+        
+        // Back navigation functions
+        function backToSubjects() {
+            chaptersList.style.display = 'none';
+            subjectsGrid.style.display = 'grid';
+            currentSubject = null;
+        }
+        
+        function backToChapters() {
+            videosList.style.display = 'none';
+            chaptersList.style.display = 'block';
+            currentChapter = null;
+        }
+        
+        // Update play/pause icon based on video state
+        mainVideo.addEventListener('play', function() {
+            playPauseIcon.className = 'fas fa-pause';
+        });
+        
+        mainVideo.addEventListener('pause', function() {
+            playPauseIcon.className = 'fas fa-play';
+        });
+        
+        // Exit landscape mode when exiting fullscreen
+        document.addEventListener('fullscreenchange', function() {
+            if (!document.fullscreenElement) {
+                document.body.classList.remove('landscape-mode');
+                exitLandscapeBtn.style.display = 'none';
+                isLandscapeMode = false;
+            }
+        });
+        
+        // Disable zooming
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+                e.preventDefault();
+            }
+        });
+        
+        // Touch event handling for mobile zoom disable
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
