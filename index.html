@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimum-scale=1.0">
+    <title>StudentPlus Messaging</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+    <style>
+        html {
+            height: 100%;
+            overflow: hidden !important;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow: hidden !important;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            overscroll-behavior: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #app-wrapper {
+            height: 100vh;
+            height: 100dvh;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+        }
+
+        #message-input, #signin-email, #signin-password, #signup-name, #signup-email, #signup-password {
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+
+        .instagram-logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.8rem;
+        }
+
+        .header-action-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        #chat-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        #chat-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #auth-wrapper {
+            height: 100vh;
+            height: 100dvh;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .auth-tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .google-signin-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.75rem;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+        
+        .google-signin-btn:hover {
+            background: #f9fafb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: #6b7280;
+        }
+        
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .divider span {
+            padding: 0 1rem;
+            font-size: 0.875rem;
+        }
+
+        .auth-home-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            color: white;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        
+        .auth-home-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .initial-message {
+            text-align: center;
+            color: #374151;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        #message-input-container {
+            display: none;
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            #message-input-container {
+                background: #1f2937;
+                border-top: 1px solid #374151;
+            }
+        }
+        
+        .button-transition {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .user-list-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .user-list-item:hover {
+            background: #f9fafb;
+        }
+        
+        .user-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .user-email {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .user-last-message {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        .unread-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .message-link {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+        
+        .embedded-media {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .embedded-image {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .embedded-video {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-youtube-embed {
+            width: 100%;
+            margin: 8px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Desktop responsive styles */
+        @media (min-width: 768px) {
+            #app-wrapper {
+                position: relative;
+                margin: 0 auto;
+                max-width: 600px;
+                height: 90vh;
+                max-height: 800px;
+                border-radius: 0.5rem;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            
+            #auth-wrapper {
+                max-width: 500px;
+                height: auto;
+                max-height: 90vh;
+                border-radius: 1rem;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            }
+        }
+    </style>
+</head>
+
+<body class="h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center overflow-hidden">
+
+    <!-- Authentication Page -->
+    <div id="auth-wrapper" class="md:rounded-lg">
+        <!-- Home Button on Auth Page -->
+        <button id="auth-home-button" class="auth-home-button" aria-label="Go back to main page">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                <path d="M11.47 3.84a.75.75 0 0 1 1.06 0l8.69 8.69a1.5 1.5 0 0 1 .43 1.069V18a2.25 2.25 0 0 1-2.25 2.25h-5.25a.75.75 0 0 1-.75-.75V15c0-.621-.504-1.125-1.125-1.125h-2.25c-.621 0-1.125.504-1.125 1.125v4.5c0 .414-.336.75-.75.75H3.75A2.25 2.25 0 0 1 1.5 18v-4.401c0-.294.118-.578.325-.785l8.69-8.69Z" />
+            </svg>
+        </button>
+        
+        <div class="auth-card">
+            <!-- Logo -->
+            <div class="text-center mb-6">
+                <h1 class="instagram-logo-font text-3xl inline-block bg-yellow-300 dark:bg-yellow-400 text-black dark:text-gray-900 px-4 py-2 rounded-lg">
+                    StudentPlus
+                </h1>
+                <p class="text-gray-600 mt-2">Sign in to start messaging</p>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="signin">Sign In</div>
+                <div class="auth-tab" data-tab="signup">Sign Up</div>
+            </div>
+            
+            <!-- Sign In Form -->
+            <form id="signin-form" class="auth-form active">
+                <div class="space-y-4">
+                    <div>
+                        <label for="signin-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input 
+                            type="email" 
+                            id="signin-email" 
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="your@email.com"
+                        >
+                    </div>
+                    <div>
+                        <label for="signin-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input 
+                            type="password" 
+                            id="signin-password" 
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="••••••••"
+                        >
+                    </div>
+                    <button 
+                        type="submit" 
+                        id="signin-button"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center button-transition"
+                    >
+                        <span id="signin-button-text">Sign In</span>
+                        <div id="signin-button-spinner" class="loading-spinner ml-2 hidden"></div>
+                    </button>
+                </div>
+                
+                <div class="divider">
+                    <span>Or continue with</span>
+                </div>
+                
+                <button 
+                    type="button" 
+                    id="google-signin-button"
+                    class="google-signin-btn button-transition"
+                >
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google
+                </button>
+            </form>
+            
+            <!-- Sign Up Form -->
+            <form id="signup-form" class="auth-form">
+                <div class="space-y-4">
+                    <div>
+                        <label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input 
+                            type="text" 
+                            id="signup-name" 
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="John Doe"
+                        >
+                    </div>
+                    <div>
+                        <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input 
+                            type="email" 
+                            id="signup-email" 
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="your@email.com"
+                        >
+                    </div>
+                    <div>
+                        <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input 
+                            type="password" 
+                            id="signup-password" 
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="••••••••"
+                        >
+                    </div>
+                    <button 
+                        type="submit" 
+                        id="signup-button"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center button-transition"
+                    >
+                        <span id="signup-button-text">Create Account</span>
+                        <div id="signup-button-spinner" class="loading-spinner ml-2 hidden"></div>
+                    </button>
+                </div>
+                
+                <div class="divider">
+                    <span>Or continue with</span>
+                </div>
+                
+                <button 
+                    type="button" 
+                    id="google-signup-button"
+                    class="google-signin-btn button-transition"
+                >
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile App Container -->
+    <div id="app-wrapper" class="bg-white dark:bg-gray-800 flex flex-col overflow-hidden rounded-none md:rounded-lg">
+
+        <!-- Header - Fixed at top -->
+        <header class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 shadow-sm flex flex-col space-y-3 flex-shrink-0">
+            
+            <!-- Top Row: Logo and Action Buttons -->
+            <div class="flex items-center justify-between w-full">
+                <!-- Title -->
+                <h1 class="text-xl flex-shrink-0 mr-4">
+                    <span class="instagram-logo-font bg-yellow-300 dark:bg-yellow-400 text-black dark:text-gray-900 px-3 py-1 rounded-md">StudentPlus</span>
+                </h1>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center space-x-2 ml-auto">
+                    <!-- Home Button -->
+                    <button
+                        type="button"
+                        id="home-button"
+                        class="header-action-button p-2 bg-green-500 hover:bg-green-600 text-white shadow-md focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 button-transition"
+                        aria-label="Clear Chat"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <path d="M11.47 3.84a.75.75 0 0 1 1.06 0l8.69 8.69a1.5 1.5 0 0 1 .43 1.069V18a2.25 2.25 0 0 1-2.25 2.25h-5.25a.75.75 0 0 1-.75-.75V15c0-.621-.504-1.125-1.125-1.125h-2.25c-.621 0-1.125.504-1.125 1.125v4.5c0 .414-.336.75-.75.75H3.75A2.25 2.25 0 0 1 1.5 18v-4.401c0-.294.118-.578.325-.785l8.69-8.69Z" />
+                        </svg>
+                    </button>
+                    
+                    <!-- Login/Sign Out Button -->
+                    <button
+                        type="button"
+                        id="auth-toggle-button"
+                        class="header-action-button p-2 bg-blue-500 hover:bg-blue-600 text-white shadow-md focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 button-transition"
+                        aria-label="Sign in or out"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm5.03 4.72a.75.75 0 0 1 0 1.06l-1.72 1.72h10.94a.75.75 0 0 1 0 1.5H10.81l1.72 1.72a.75.75 0 1 1-1.06 1.06l-3-3a.75.75 0 0 1 0-1.06l3-3a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Container - Scrollable area -->
+        <main id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6">
+            <!-- Messages will be loaded here dynamically -->
+            <div class="initial-message">
+                Welcome to StudentPlus Messaging! Sign in to start chatting with teachers and administrators.
+            </div>
+        </main>
+
+        <!-- Message Input Container -->
+        <div id="message-input-container" class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-2 flex-shrink-0">
+            <div class="flex w-full space-x-2">
+                <input 
+                    type="text" 
+                    id="message-input"
+                    placeholder="Type your message..."
+                    class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400"
+                    autocomplete="off"
+                >
+                <button 
+                    type="button"
+                    id="send-message-button"
+                    class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-md shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 flex-shrink-0 flex items-center justify-center button-transition"
+                    aria-label="Send message"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path d="M2.01 21.01L23 12 2.01 3v7l15 2-15 2v7z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="error-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full">
+                <h3 class="text-lg font-medium text-red-600 dark:text-red-400">Error</h3>
+                <p id="error-message" class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                    An internal error occurred.
+                </p>
+                <button id="close-error-modal" class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 button-transition">
+                    Close
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const authWrapper = document.getElementById('auth-wrapper');
+            const appWrapper = document.getElementById('app-wrapper');
+            const chatContainer = document.getElementById('chat-container');
+            
+            // Authentication elements
+            const authTabs = document.querySelectorAll('.auth-tab');
+            const authForms = document.querySelectorAll('.auth-form');
+            const signinForm = document.getElementById('signin-form');
+            const signupForm = document.getElementById('signup-form');
+            const signinButton = document.getElementById('signin-button');
+            const signupButton = document.getElementById('signup-button');
+            const signinButtonText = document.getElementById('signin-button-text');
+            const signupButtonText = document.getElementById('signup-button-text');
+            const signinButtonSpinner = document.getElementById('signin-button-spinner');
+            const signupButtonSpinner = document.getElementById('signup-button-spinner');
+            const googleSigninButton = document.getElementById('google-signin-button');
+            const googleSignupButton = document.getElementById('google-signup-button');
+            const authToggleButton = document.getElementById('auth-toggle-button');
+            const authHomeButton = document.getElementById('auth-home-button');
+            
+            // Action Buttons
+            const homeButton = document.getElementById('home-button');
+
+            // Message elements
+            const messageInputContainer = document.getElementById('message-input-container');
+            const messageInput = document.getElementById('message-input');
+            const sendMessageButton = document.getElementById('send-message-button');
+            
+            // Track message listener unsubscribe function
+            let messageUnsubscribe = null;
+            let conversationsUnsubscribe = null;
+            
+            // Track admin state and selected user
+            let isAdmin = false;
+            let selectedUserForAdmin = null;
+            let currentConversationId = null;
+            
+            // Firebase Configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyBJ_G5o4otg7riemfJDMOcPoHoIVH7emsc",
+                authDomain: "geobazarr.firebaseapp.com",
+                databaseURL: "https://geobazarr-default-rtdb.firebaseio.com",
+                projectId: "geobazarr",
+                storageBucket: "geobazarr.firebasestorage.app",
+                messagingSenderId: "679949247383",
+                appId: "1:679949247383:web:036d4f32038422ebb89ad2"
+            };
+
+            // Initialize Firebase
+            let db, auth;
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+                console.log("Firebase initialized successfully");
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+                showError("Firebase initialization failed. Please refresh the page.");
+            }
+
+            // Admin check function
+            function checkIfAdmin(user) {
+                if (!user || !user.email) return false;
+                const adminEmail = user.email.toLowerCase().trim();
+                return adminEmail === 'admin@gmail.com';
+            }
+
+            // WhatsApp-like Conversation System
+
+            // Load conversation list for admin
+            function loadUserList() {
+                console.log("Loading user list for admin...");
+                chatContainer.innerHTML = '<div class="initial-message">Loading conversations...</div>';
+                
+                const conversationsRef = db.collection('conversations')
+                    .orderBy('timestamp', 'desc');
+                
+                conversationsRef.get().then((querySnapshot) => {
+                    console.log(`Found ${querySnapshot.size} conversations`);
+                    chatContainer.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        const noConversations = document.createElement('div');
+                        noConversations.className = 'initial-message';
+                        noConversations.textContent = 'No conversations yet.';
+                        chatContainer.appendChild(noConversations);
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const conversationData = doc.data();
+                        console.log("Conversation data:", conversationData);
+                        const conversationElement = createConversationElement(doc.id, conversationData);
+                        chatContainer.appendChild(conversationElement);
+                    });
+                }).catch((error) => {
+                    console.error("Error loading conversations:", error);
+                    console.error("Error details:", error.code, error.message);
+                    showError(`Failed to load conversations: ${error.message}`);
+                });
+            }
+
+            // Create conversation list item
+            function createConversationElement(conversationId, conversationData) {
+                const conversationElement = document.createElement('div');
+                conversationElement.className = 'user-list-item';
+                
+                const lastMessage = conversationData.lastMessage || 'No messages yet';
+                const truncatedMessage = lastMessage.length > 50 ? lastMessage.substring(0, 50) + '...' : lastMessage;
+                const timestamp = conversationData.timestamp ? 
+                    formatTimestamp(conversationData.timestamp.toDate()) : 'Just now';
+                
+                conversationElement.innerHTML = `
+                    <div class="user-name">${conversationData.userName || 'User'}</div>
+                    <div class="user-email">${conversationData.userEmail}</div>
+                    <div class="user-last-message">${truncatedMessage}</div>
+                    <div class="user-last-message">${timestamp}</div>
+                `;
+                
+                conversationElement.addEventListener('click', () => {
+                    selectedUserForAdmin = conversationData.userId;
+                    currentConversationId = conversationId;
+                    loadUserMessages(conversationData.userId);
+                    messageInputContainer.style.display = 'block';
+                    
+                    // Mark as read
+                    markConversationAsRead(conversationId);
+                });
+                
+                // Add unread indicator
+                if (conversationData.unreadCount > 0) {
+                    const unreadBadge = document.createElement('div');
+                    unreadBadge.className = 'unread-badge';
+                    unreadBadge.textContent = conversationData.unreadCount;
+                    conversationElement.appendChild(unreadBadge);
+                }
+                
+                return conversationElement;
+            }
+
+            // Format timestamp for display
+            function formatTimestamp(date) {
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ago`;
+                if (diffDays < 7) return `${diffDays}d ago`;
+                
+                return date.toLocaleDateString();
+            }
+
+            // Update or create conversation when message is sent
+            async function updateConversation(userId, message, sender) {
+                console.log(`Updating conversation for user ${userId}, sender: ${sender}`);
+                
+                if (!isAdmin && sender !== 'student') return;
+                
+                const user = auth.currentUser;
+                if (!user) return;
+                
+                try {
+                    const userDoc = await db.collection('users').doc(userId).get();
+                    const userData = userDoc.data();
+                    
+                    const conversationData = {
+                        userId: userId,
+                        userName: userData?.displayName || 'User',
+                        userEmail: userData?.email || 'No email',
+                        lastMessage: message,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        participants: [userId, 'admin']
+                    };
+                    
+                    // Add unread count logic
+                    if (sender === 'student') {
+                        conversationData.unreadCount = firebase.firestore.FieldValue.increment(1);
+                    } else {
+                        conversationData.unreadCount = 0;
+                    }
+                    
+                    // Find existing conversation
+                    const conversationsRef = db.collection('conversations');
+                    const existingConversation = await conversationsRef
+                        .where('userId', '==', userId)
+                        .limit(1)
+                        .get();
+                    
+                    if (existingConversation.empty) {
+                        console.log("Creating new conversation");
+                        const newConversation = await conversationsRef.add(conversationData);
+                        currentConversationId = newConversation.id;
+                    } else {
+                        console.log("Updating existing conversation");
+                        const conversationId = existingConversation.docs[0].id;
+                        currentConversationId = conversationId;
+                        await conversationsRef.doc(conversationId).update(conversationData);
+                    }
+                    
+                    // Update user's conversation reference
+                    await db.collection('users').doc(userId).set({
+                        conversationId: currentConversationId,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    
+                } catch (error) {
+                    console.error("Error updating conversation:", error);
+                    console.error("Error details:", error.code, error.message);
+                }
+            }
+
+            // Mark conversation as read
+            async function markConversationAsRead(conversationId) {
+                try {
+                    await db.collection('conversations').doc(conversationId).update({
+                        unreadCount: 0
+                    });
+                } catch (error) {
+                    console.error("Error marking conversation as read:", error);
+                }
+            }
+
+            // Setup real-time conversation listener for admin
+            function setupConversationsListener() {
+                if (!isAdmin) return;
+                
+                const conversationsRef = db.collection('conversations')
+                    .orderBy('timestamp', 'desc');
+                
+                conversationsUnsubscribe = conversationsRef.onSnapshot((querySnapshot) => {
+                    if (isAdmin && !selectedUserForAdmin) {
+                        // Refresh the conversation list in real-time
+                        loadUserList();
+                    }
+                }, (error) => {
+                    console.error("Error in conversations listener:", error);
+                });
+            }
+
+            // Load messages for a specific user (admin function)
+            function loadUserMessages(userId) {
+                chatContainer.innerHTML = '<div class="initial-message">Loading messages...</div>';
+                
+                // Reference to user's messages collection
+                const messagesRef = db.collection('users').doc(userId).collection('messages')
+                    .orderBy('timestamp', 'asc');
+                
+                // Set up real-time listener
+                messageUnsubscribe = messagesRef.onSnapshot((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        displayMessagesFromCollection(querySnapshot, true, userId);
+                    } else {
+                        // No messages yet
+                        const noMessages = document.createElement('div');
+                        noMessages.className = 'initial-message';
+                        noMessages.textContent = 'No messages yet.';
+                        chatContainer.appendChild(noMessages);
+                    }
+                }, (error) => {
+                    console.error("Error loading user messages:", error);
+                    showError("Failed to load messages.");
+                });
+            }
+            
+            // Load message history for current user
+            function loadMessageHistory(userId = null) {
+                const user = auth.currentUser;
+                if (!user) {
+                    // User not authenticated
+                    const authMessage = document.createElement('div');
+                    authMessage.className = 'initial-message';
+                    authMessage.textContent = 'Please sign in to view and send messages.';
+                    chatContainer.appendChild(authMessage);
+                    return;
+                }
+                
+                const targetUserId = userId || user.uid;
+                
+                // Reference to user's messages collection
+                const messagesRef = db.collection('users').doc(targetUserId).collection('messages')
+                    .orderBy('timestamp', 'asc');
+                
+                // Set up real-time listener
+                messageUnsubscribe = messagesRef.onSnapshot((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        displayMessagesFromCollection(querySnapshot, isAdmin, targetUserId);
+                    } else {
+                        // No messages yet
+                        const noMessages = document.createElement('div');
+                        noMessages.className = 'initial-message';
+                        noMessages.textContent = 'No messages yet. Start a conversation!';
+                        chatContainer.appendChild(noMessages);
+                    }
+                }, (error) => {
+                    console.error("Error loading messages:", error);
+                    showError("Failed to load messages. Please try again.");
+                });
+            }
+            
+            // Display messages from the collection structure
+            function displayMessagesFromCollection(querySnapshot, isAdminView = false, userId = null) {
+                // Clear chat container
+                chatContainer.innerHTML = '';
+                
+                // Display each message
+                querySnapshot.forEach((doc) => {
+                    const messageData = doc.data();
+                    const message = messageData.text;
+                    const timestamp = messageData.timestamp;
+                    const sender = messageData.sender;
+                    const isTeacher = sender === 'teacher';
+                    
+                    // For admin view, we need to adjust the alignment
+                    if (isAdminView) {
+                        // In admin view, user messages show on LEFT, admin messages on RIGHT
+                        addMessage(message, isTeacher ? 'teacher' : 'user', timestamp, isAdminView);
+                    } else {
+                        // In normal user view, user messages on RIGHT, teacher messages on LEFT
+                        addMessage(message, isTeacher ? 'teacher' : 'user', timestamp, isAdminView);
+                    }
+                });
+                
+                // Scroll to bottom
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 100);
+            }
+            
+            // Send a new message
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message) return;
+
+                const user = auth.currentUser;
+                if (!user) {
+                    showAuthPage();
+                    showError("Please sign in to send messages.");
+                    return;
+                }
+
+                let targetUserId = user.uid;
+                let sender = 'student';
+
+                // If admin is replying to a user
+                if (isAdmin && selectedUserForAdmin) {
+                    targetUserId = selectedUserForAdmin;
+                    sender = 'teacher';
+                }
+
+                // Reference to user's messages collection
+                const messagesRef = db.collection('users').doc(targetUserId).collection('messages');
+                
+                try {
+                    // Add new message document
+                    await messagesRef.add({
+                        sender: sender,
+                        text: message,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Update conversation (for both student and admin messages)
+                    await updateConversation(targetUserId, message, sender);
+                    
+                    // Clear input
+                    messageInput.value = '';
+                    
+                } catch (error) {
+                    console.error("Error sending message:", error);
+                    console.error("Error details:", error.code, error.message);
+                    showError(`Failed to send message: ${error.message}`);
+                }
+            }
+            
+            // --- Authentication Functions ---
+            
+            // Switch between sign in and sign up tabs
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show corresponding form
+                    authForms.forEach(form => {
+                        form.classList.remove('active');
+                        if (form.id === `${tabName}-form`) {
+                            form.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Create or update user document
+            async function setupUserDocument(user) {
+                if (!db) return;
+                
+                try {
+                    const userRef = db.collection('users').doc(user.uid);
+                    const userDoc = await userRef.get();
+                    
+                    if (!userDoc.exists) {
+                        // Create new user document
+                        await userRef.set({
+                            email: user.email,
+                            displayName: user.displayName || document.getElementById('signup-name')?.value || 'User',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        console.log("New user document created");
+                    } else {
+                        // Update last login for existing user
+                        await userRef.update({
+                            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        console.log("User document updated with last login");
+                    }
+                } catch (error) {
+                    console.error("Error setting up user document:", error);
+                }
+            }
+            
+            // Email/password sign in
+            signinForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('signin-email').value;
+                const password = document.getElementById('signin-password').value;
+                
+                if (!email || !password) {
+                    showError("Please fill in all fields");
+                    return;
+                }
+                
+                // Show loading state
+                signinButtonText.classList.add('hidden');
+                signinButtonSpinner.classList.remove('hidden');
+                signinButton.disabled = true;
+                
+                try {
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    // Check if admin
+                    isAdmin = checkIfAdmin(userCredential.user);
+                    console.log("User signed in as admin:", isAdmin);
+                    // Set up user document after successful sign in
+                    await setupUserDocument(userCredential.user);
+                    // Hide auth page and show app
+                    hideAuthPage();
+                } catch (error) {
+                    console.error("Sign in error:", error);
+                    showError(getAuthErrorMessage(error));
+                } finally {
+                    // Reset button state
+                    signinButtonText.classList.remove('hidden');
+                    signinButtonSpinner.classList.add('hidden');
+                    signinButton.disabled = false;
+                }
+            });
+            
+            // Email/password sign up
+            signupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('signup-name').value;
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                
+                if (!name || !email || !password) {
+                    showError("Please fill in all fields");
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showError("Password should be at least 6 characters");
+                    return;
+                }
+                
+                // Show loading state
+                signupButtonText.classList.add('hidden');
+                signupButtonSpinner.classList.remove('hidden');
+                signupButton.disabled = true;
+                
+                try {
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    
+                    // Update user profile with name
+                    await userCredential.user.updateProfile({
+                        displayName: name
+                    });
+                    
+                    // Check if admin
+                    isAdmin = checkIfAdmin(userCredential.user);
+                    console.log("User signed up as admin:", isAdmin);
+                    // Set up user document with permissions
+                    await setupUserDocument(userCredential.user);
+                    // Hide auth page and show app
+                    hideAuthPage();
+                    
+                } catch (error) {
+                    console.error("Sign up error:", error);
+                    showError(getAuthErrorMessage(error));
+                } finally {
+                    // Reset button state
+                    signupButtonText.classList.remove('hidden');
+                    signupButtonSpinner.classList.add('hidden');
+                    signupButton.disabled = false;
+                }
+            });
+            
+            // Google sign in
+            const handleGoogleSignIn = async () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                
+                try {
+                    const userCredential = await auth.signInWithPopup(provider);
+                    // Check if admin
+                    isAdmin = checkIfAdmin(userCredential.user);
+                    console.log("User signed in with Google as admin:", isAdmin);
+                    // Set up user document after successful Google sign in
+                    await setupUserDocument(userCredential.user);
+                    // Hide auth page and show app
+                    hideAuthPage();
+                } catch (error) {
+                    console.error("Google sign in error:", error);
+                    showError(getAuthErrorMessage(error));
+                }
+            };
+            
+            googleSigninButton.addEventListener('click', handleGoogleSignIn);
+            googleSignupButton.addEventListener('click', handleGoogleSignIn);
+            
+            // Toggle between login and logout
+            authToggleButton.addEventListener('click', async () => {
+                const user = auth.currentUser;
+                if (user) {
+                    // User is signed in, so sign out
+                    try {
+                        await auth.signOut();
+                        isAdmin = false;
+                        selectedUserForAdmin = null;
+                        currentConversationId = null;
+                        resetChat();
+                    } catch (error) {
+                        console.error("Sign out error:", error);
+                        showError("Failed to sign out. Please try again.");
+                    }
+                } else {
+                    // User is not signed in, show auth page
+                    showAuthPage();
+                }
+            });
+            
+            // Home button on auth page
+            authHomeButton.addEventListener('click', () => {
+                hideAuthPage();
+            });
+            
+            // Show auth page
+            function showAuthPage() {
+                authWrapper.style.display = 'flex';
+                appWrapper.style.display = 'none';
+            }
+            
+            // Hide auth page
+            function hideAuthPage() {
+                authWrapper.style.display = 'none';
+                appWrapper.style.display = 'flex';
+                resetChat();
+            }
+            
+            // Update UI based on auth state
+            function updateAuthUI(user) {
+                if (user) {
+                    // User is signed in
+                    authToggleButton.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                        </svg>
+                    `;
+                    authToggleButton.setAttribute('aria-label', 'Sign out');
+                    console.log("User signed in:", user.displayName || user.email);
+                } else {
+                    // User is signed out
+                    authToggleButton.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm5.03 4.72a.75.75 0 0 1 0 1.06l-1.72 1.72h10.94a.75.75 0 0 1 0 1.5H10.81l1.72 1.72a.75.75 0 1 1-1.06 1.06l-3-3a.75.75 0 0 1 0-1.06l3-3a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                        </svg>
+                    `;
+                    authToggleButton.setAttribute('aria-label', 'Sign in');
+                    console.log("User signed out");
+                }
+            }
+            
+            // Auth state observer
+            auth.onAuthStateChanged((user) => {
+                console.log("Auth state changed, user:", user ? user.email : "none");
+                updateAuthUI(user);
+                
+                // Check if user is admin
+                isAdmin = checkIfAdmin(user);
+                console.log("Is admin:", isAdmin);
+                
+                if (user) {
+                    hideAuthPage();
+                    
+                    // Setup real-time listeners based on role
+                    if (isAdmin) {
+                        console.log("Setting up admin listeners");
+                        setupConversationsListener();
+                    }
+                    
+                    resetChat();
+                } else {
+                    isAdmin = false;
+                    selectedUserForAdmin = null;
+                    currentConversationId = null;
+                    
+                    if (conversationsUnsubscribe) {
+                        conversationsUnsubscribe();
+                        conversationsUnsubscribe = null;
+                    }
+                    
+                    resetChat();
+                }
+            });
+            
+            // Helper function to get user-friendly auth error messages
+            function getAuthErrorMessage(error) {
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        return 'Invalid email address.';
+                    case 'auth/user-disabled':
+                        return 'This account has been disabled.';
+                    case 'auth/user-not-found':
+                        return 'No account found with this email.';
+                    case 'auth/wrong-password':
+                        return 'Incorrect password.';
+                    case 'auth/email-already-in-use':
+                        return 'An account with this email already exists.';
+                    case 'auth/weak-password':
+                        return 'Password is too weak.';
+                    case 'auth/network-request-failed':
+                        return 'Network error. Please check your connection.';
+                    default:
+                        return error.message || 'Authentication failed. Please try again.';
+                }
+            }
+
+            // --- Core App Functions ---
+
+            // Disable context menu and copy events globally
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+            document.addEventListener('copy', (e) => e.preventDefault());
+
+            // Show error modal
+            function showError(message) {
+                const errorModal = document.getElementById('error-modal');
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = message;
+                errorModal.classList.remove('hidden');
+            }
+
+            // Close error modal
+            document.getElementById('close-error-modal').addEventListener('click', () => {
+                document.getElementById('error-modal').classList.add('hidden');
+            });
+
+            // Detect and handle links in messages
+            function detectAndHandleLinks(text) {
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                const matches = text.match(urlRegex);
+                
+                if (!matches) return { isPureMedia: false, content: text };
+                
+                let processedText = text;
+                let isPureMedia = false;
+                
+                // Check if the entire message is just one media URL
+                if (matches.length === 1 && text.trim() === matches[0]) {
+                    const url = matches[0];
+                    
+                    // Check if it's an image
+                    if (url.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i)) {
+                        return {
+                            isPureMedia: true,
+                            content: `<div class="embedded-media">
+                                <img src="${url}" alt="Embedded Image" class="embedded-image" onerror="this.style.display='none'">
+                            </div>`
+                        };
+                    } 
+                    // Check if it's a video
+                    else if (url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i)) {
+                        return {
+                            isPureMedia: true,
+                            content: `<div class="embedded-media">
+                                <video controls class="embedded-video">
+                                    <source src="${url}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>`
+                        };
+                    }
+                    // Check if it's a YouTube URL
+                    else if (url.match(/(youtube\.com|youtu\.be)/)) {
+                        let videoId = '';
+                        if (url.includes('youtu.be/')) {
+                            videoId = url.split('youtu.be/')[1].split('?')[0];
+                        } else if (url.includes('youtube.com/watch?v=')) {
+                            videoId = url.split('v=')[1].split('&')[0];
+                        }
+                        
+                        if (videoId) {
+                            return {
+                                isPureMedia: true,
+                                content: `<div class="chat-youtube-embed">
+                                    <div class="aspect-video w-full bg-gray-900">
+                                        <iframe 
+                                            width="100%" 
+                                            height="100%" 
+                                            src="https://www.youtube.com/embed/${videoId}" 
+                                            title="YouTube video player"
+                                            frameborder="0" 
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen
+                                            class="w-full h-full"
+                                        ></iframe>
+                                    </div>
+                                </div>`
+                            };
+                        }
+                    }
+                }
+                
+                // Regular processing for mixed content
+                matches.forEach(url => {
+                    // Check if it's an image
+                    if (url.match(/\.(jpeg|jpg|gif|png|webp|bmp)(\?.*)?$/i)) {
+                        processedText = processedText.replace(url, 
+                            `<div class="embedded-media">
+                                <img src="${url}" alt="Embedded Image" class="embedded-image" onerror="this.style.display='none'">
+                            </div>`
+                        );
+                    } 
+                    // Check if it's a video
+                    else if (url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i)) {
+                        processedText = processedText.replace(url,
+                            `<div class="embedded-media">
+                                <video controls class="embedded-video">
+                                    <source src="${url}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>`
+                        );
+                    }
+                    // Check if it's a YouTube URL
+                    else if (url.match(/(youtube\.com|youtu\.be)/)) {
+                        let videoId = '';
+                        if (url.includes('youtu.be/')) {
+                            videoId = url.split('youtu.be/')[1].split('?')[0];
+                        } else if (url.includes('youtube.com/watch?v=')) {
+                            videoId = url.split('v=')[1].split('&')[0];
+                        }
+                        
+                        if (videoId) {
+                            processedText = processedText.replace(url,
+                                `<div class="chat-youtube-embed">
+                                    <div class="aspect-video w-full bg-gray-900">
+                                        <iframe 
+                                            width="100%" 
+                                            height="100%" 
+                                            src="https://www.youtube.com/embed/${videoId}" 
+                                            title="YouTube video player"
+                                            frameborder="0" 
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen
+                                            class="w-full h-full"
+                                        ></iframe>
+                                    </div>
+                                </div>`
+                            );
+                        }
+                    }
+                    // Regular URL - convert to clickable link
+                    else {
+                        processedText = processedText.replace(url, 
+                            `<a href="${url}" target="_blank" class="message-link">${url}</a>`
+                        );
+                    }
+                });
+                
+                return { isPureMedia: false, content: processedText };
+            }
+
+            // Add a new message to the chat UI
+            function addMessage(content, sender, timestamp = null, isAdminView = false) {
+                const messageWrapper = document.createElement('div');
+                
+                // Determine if this is a user message or teacher message
+                const isUserMessage = sender === 'user';
+                const isTeacherMessage = sender === 'teacher';
+                
+                // Process content for links and embedded media
+                const processedContent = detectAndHandleLinks(content);
+                
+                // Check if this is pure media (no message bubble needed)
+                if (processedContent.isPureMedia) {
+                    // For pure media, just add the media without a message bubble
+                    messageWrapper.className = `mb-4`;
+                    messageWrapper.innerHTML = processedContent.content;
+                    chatContainer.appendChild(messageWrapper);
+                    return;
+                }
+                
+                // For regular messages with bubble
+                // For admin view, we need to adjust the alignment
+                if (isAdminView) {
+                    // In admin view, user messages show on LEFT, admin messages on RIGHT
+                    messageWrapper.className = `flex ${isUserMessage ? 'justify-start' : 'justify-end'} mb-4`;
+                } else {
+                    // In normal user view, user messages on RIGHT, teacher messages on LEFT
+                    messageWrapper.className = `flex ${isUserMessage ? 'justify-end' : 'justify-start'} mb-4`;
+                }
+                
+                const messageBubble = document.createElement('div');
+                
+                // Different styling based on sender and view
+                if (isUserMessage) {
+                    // User messages: GREEN background
+                    messageBubble.className = 'p-3 rounded-lg max-w-sm md:max-w-md bg-green-600 text-white';
+                } else if (isTeacherMessage) {
+                    // Teacher/Admin messages: BLUE background  
+                    messageBubble.className = 'p-3 rounded-lg max-w-sm md:max-w-md bg-blue-600 text-white';
+                } else {
+                    messageBubble.className = 'p-3 rounded-lg max-w-sm md:max-w-md bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 break-words';
+                }
+
+                // Simple formatting for teacher responses
+                if (isTeacherMessage) {
+                    let htmlContent = processedContent.content
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')     // Italic
+                        .replace(/\n/g, '<br>');                  // Newlines
+                    
+                    messageBubble.innerHTML = htmlContent;
+                } else {
+                    // For user messages, just use the processed content (with links handled)
+                    messageBubble.innerHTML = processedContent.content.replace(/\n/g, '<br>');
+                }
+                
+                // Add timestamp if available
+                if (timestamp) {
+                    const timeDiv = document.createElement('div');
+                    if (isUserMessage) {
+                        timeDiv.className = 'text-xs mt-1 text-green-100';
+                    } else if (isTeacherMessage) {
+                        timeDiv.className = 'text-xs mt-1 text-blue-100';
+                    } else {
+                        timeDiv.className = 'text-xs mt-1 text-gray-500';
+                    }
+                    
+                    let formattedTime = '';
+                    if (timestamp.toDate) {
+                        // Firebase timestamp
+                        const date = timestamp.toDate();
+                        formattedTime = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    } else if (timestamp instanceof Date) {
+                        // Regular Date object
+                        formattedTime = timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    } else if (typeof timestamp === 'string') {
+                        // String timestamp
+                        formattedTime = timestamp;
+                    }
+                    
+                    timeDiv.textContent = formattedTime;
+                    messageBubble.appendChild(timeDiv);
+                }
+                
+                messageWrapper.appendChild(messageBubble);
+                chatContainer.appendChild(messageWrapper);
+            }
+            
+            // Reset Chat to Initial State
+            function resetChat() {
+                // Unsubscribe from message listener if active
+                if (messageUnsubscribe) {
+                    messageUnsubscribe();
+                    messageUnsubscribe = null;
+                }
+                
+                // Clear existing content
+                chatContainer.innerHTML = '';
+                
+                // Reset admin selection
+                selectedUserForAdmin = null;
+                currentConversationId = null;
+                
+                const user = auth.currentUser;
+                
+                if (user) {
+                    // User is authenticated
+                    if (isAdmin) {
+                        // Admin view - show user list
+                        messageInputContainer.style.display = 'none';
+                        loadUserList();
+                    } else {
+                        // Regular user view - show message history
+                        messageInputContainer.style.display = 'block';
+                        loadMessageHistory();
+                    }
+                } else {
+                    // User not authenticated
+                    messageInputContainer.style.display = 'none';
+                    const authMessage = document.createElement('div');
+                    authMessage.className = 'initial-message';
+                    authMessage.textContent = 'Welcome to StudentPlus Messaging! Sign in to start chatting with teachers and administrators.';
+                    chatContainer.appendChild(authMessage);
+                }
+                
+                // Scroll to top
+                chatContainer.scrollTop = 0;
+            }
+
+            // Input handlers for mobile stability
+            function handleFocus() {
+                // Ensure chat container scrolls up when input is focused (for mobile keyboards)
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 300);
+            }
+
+            function handleBlur() {
+                // Ensure chat container scrolls back down slightly after input blur
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 100);
+            }
+            
+            // Listeners for Message Input
+            messageInput.addEventListener('focus', handleFocus);
+            messageInput.addEventListener('blur', handleBlur);
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            sendMessageButton.addEventListener('click', sendMessage);
+
+            // Handler for Home Button
+            homeButton.addEventListener('click', resetChat);
+            
+            // Initialize the app
+            resetChat();
+            
+            // Check if user is already logged in
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in, show the app
+                    hideAuthPage();
+                } else {
+                    // User is signed out
+                    resetChat();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
